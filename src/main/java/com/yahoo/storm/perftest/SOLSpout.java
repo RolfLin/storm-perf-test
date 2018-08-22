@@ -25,6 +25,8 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 
 public class SOLSpout extends BaseRichSpout {
   private int _sizeInBytes;
@@ -33,6 +35,8 @@ public class SOLSpout extends BaseRichSpout {
   private String [] _messages = null;
   private boolean _ackEnabled;
   private Random _rand = null;
+  int index = 0;
+  long startTime;
   public SOLSpout(int sizeInBytes, boolean ackEnabled) {
     if(sizeInBytes < 0) {
       sizeInBytes = 0;
@@ -60,6 +64,7 @@ public class SOLSpout extends BaseRichSpout {
       }
       _messages[i] = sb.toString();
     }
+    System.out.println("message size : " + ObjectSizeCalculator.getObjectSize(_messages[1]));
   }
 
   @Override
@@ -73,7 +78,20 @@ public class SOLSpout extends BaseRichSpout {
     if(_ackEnabled) {
       _collector.emit(new Values(message), _messageCount);
     } else {
-      _collector.emit(new Values(message));
+      if(index == 0){
+        startTime = System.currentTimeMillis();
+        System.out.println("Emit message");
+      }
+      if(index < 1300){
+        _collector.emit(new Values(message));
+//        System.out.println("Emit message");
+        index++;
+      }else{
+        System.out.println("Emit the end");
+        long elapseTime = System.currentTimeMillis() - startTime;
+//        System.out.println("Elapse time :" + elapseTime);
+        Utils.sleep(5 * 60 * 1000);
+      }
     }
     _messageCount++;
   }

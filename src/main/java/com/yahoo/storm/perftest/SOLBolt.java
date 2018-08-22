@@ -40,6 +40,7 @@ public class SOLBolt extends BaseRichBolt {
 
   @Override
   public void execute(Tuple tuple) {
+    System.out.println("Receive message");
     _collector.emit(tuple, new Values(tuple.getString(0)));
     _collector.ack(tuple);
   }
