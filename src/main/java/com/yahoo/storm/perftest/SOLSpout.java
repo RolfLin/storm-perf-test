@@ -80,7 +80,7 @@ public class SOLSpout extends BaseRichSpout {
     } else {
       if(index == 0){
         startTime = System.currentTimeMillis();
-        System.out.println("Emit message");
+        System.out.println("Emit message  ");
       }
       if(index < 1300){
         _collector.emit(new Values(message));
