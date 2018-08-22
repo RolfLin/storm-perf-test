@@ -253,7 +253,10 @@ public class Main {
             new SOLSpout(_messageSize, _ackEnabled), _spoutParallel);
         LOG.info("Adding in "+_boltParallel+" bolts");
         builder.setBolt("messageBolt1", new SOLBolt(), _boltParallel)
-            .shuffleGrouping("messageSpout");
+                .shuffleGrouping("messageSpout", "spout")
+                .shuffleGrouping("messageBolt2", "bolt2");
+        builder.setBolt("messageBolt2", new SOLBolt2(), _boltParallel)
+                .shuffleGrouping("messageBolt1", "bolt1");
         for (int levelNum = 2; levelNum <= _numLevels; levelNum++) {
           LOG.info("Adding in "+_boltParallel+" bolts at level "+levelNum);
           builder.setBolt("messageBolt"+levelNum, new SOLBolt(), _boltParallel)
@@ -264,26 +267,30 @@ public class Main {
         conf.setDebug(_debug);
         conf.setNumWorkers(_numWorkers);
         conf.setNumAckers(_ackers);
+        conf.put(Config.TOPOLOGY_TRANSFER_BUFFER_SIZE,              32);
+        conf.put(Config.TOPOLOGY_EXECUTOR_RECEIVE_BUFFER_SIZE, 16384);
+        conf.put(Config.TOPOLOGY_EXECUTOR_SEND_BUFFER_SIZE,    16384);
         if (_maxSpoutPending > 0) {
           conf.setMaxSpoutPending(_maxSpoutPending);
         }
 
         StormSubmitter.submitTopology(_name+"_"+topoNum, conf, builder.createTopology());
       }
-      metrics(client, _messageSize, _pollFreqSec, _testRunTimeSec);
+//      metrics(client, _messageSize, _pollFreqSec, _testRunTimeSec);
     } finally {
       //Kill it right now!!!
-      KillOptions killOpts = new KillOptions();
-      killOpts.set_wait_secs(0);
-
-      for (int topoNum = 0; topoNum < _numTopologies; topoNum++) {
-        LOG.info("KILLING "+_name+"_"+topoNum);
-        try {
-          client.killTopologyWithOpts(_name+"_"+topoNum, killOpts);
-        } catch (Exception e) {
-          LOG.error("Error tying to kill "+_name+"_"+topoNum,e);
-        }
-      }
+//      Utils.sleep(60000);
+//      KillOptions killOpts = new KillOptions();
+//      killOpts.set_wait_secs(0);
+//
+//      for (int topoNum = 0; topoNum < _numTopologies; topoNum++) {
+//        LOG.info("KILLING "+_name+"_"+topoNum);
+//        try {
+//          client.killTopologyWithOpts(_name+"_"+topoNum, killOpts);
+//        } catch (Exception e) {
+//          LOG.error("Error tying to kill "+_name+"_"+topoNum,e);
+//        }
+//      }
     }
   }
   
